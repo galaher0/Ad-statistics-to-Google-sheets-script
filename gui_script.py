@@ -3,6 +3,7 @@ import sys
 import re
 import fileinput
 import requests
+from datetime import date
 from config import ACCESS_TOKEN_VK, AD_ACCOUNT_ID, SPREADSHEET_ID
 import pickle
 import os.path
@@ -16,7 +17,7 @@ from tkinter import ttk"""
 # GUI part (in place of command line style of input)
 root = Tk()
 root.title("Авто Бася")
-
+Label(root, text="ТОЛЬКО ДЛЯ ОДНОМЕСЯЧНЫХ КАМПАНИЙ")
 '''ph_style = ttk.Style(root)
 
 ph_style.configure("Placeholder.TEntry", foreground="#d5d5d5")
@@ -121,16 +122,43 @@ if "error" in json_response.keys():
 	print(u"ВК не выполнил запрос, выход из программы\n")
 	print(json_response)
 	exit(1)
+# print(json_response) # debugging
 
 # Retrieving neccessary statistics
-spent = json_response['response'][0]['stats'][0]['spent'].replace('.', ',')
-views_count = json_response['response'][0]['stats'][0]['impressions']
-clicks_count = json_response['response'][0]['stats'][0]['clicks']
+# Reach stats is not always available
+# Further implementation needed
+data = dict()
+data['current_date'] = date.today().strftime("%d.%m.%Y")
+for key in ['spent', 'impressions', 'clicks', 'reach']:
+	if key in json_response['response'][0]['stats'][0].keys():
+		data[key] = json_response['response'][0]['stats'][0][key]
+	else:
+		data[key] = 'NA'
+data['spent'] = data['spent'].replace('.', ',')
+
+# Feature to implement
+'''
+default is month period stat
+# if not (date.today().day < 4 and date.today().weekday() == 0):
+# 	# print(f'https://api.vk.com/method/ads.getStatistics?account_id={AD_ACCOUNT_ID}&ids_type=campaign&ids={AD_ID}&period=month&date_from={date.today().strftime("%Y-%m")}&date_to={date.today().strftime("%Y-%m")}&access_token={ACCESS_TOKEN_VK}&v=5.124')
+# 	r = requests.get(f'https://api.vk.com/method/ads.getStatistics?account_id={AD_ACCOUNT_ID}&ids_type=campaign&ids={AD_ID}&period=month&date_from=2020-10&date_to=2020-10&access_token={ACCESS_TOKEN_VK}&v=5.124')
+# 	json_response = r.json()
+# 	if "error" in json_response.keys():
+# 		print(u"ВК не выполнил запрос, выход из программы\n")
+# 		print(json_response)
+# 		exit(1)
+# 	print(json_response)
+
+# else:
+
+'''
 
 print(f"Данные ВК, которые будут записаны в Гугл таблицу\n\
-	Потрачено: {spent}\n\
-	Просмотров: {views_count}\n\
-	Кликов: {clicks_count}\n")
+	Дата: {data['current_date']}\n\
+	Потрачено: {data['spent']}\n\
+	Просмотров: {data['impressions']}\n\
+	Кликов: {data['clicks']}\n\
+	Охват: {data['reach']}\n")
 
 print(u"Отправка запроса в Гугл таблицы\n")
 
@@ -181,8 +209,9 @@ else:
 	exit(1)
 
 # Columns numbers are hardcoded
-columns_to_write = ['M', 'U', 'V']
-values_to_write = [spent, views_count, clicks_count]
+columns_to_write = ['J', 'M', 'U', 'V', 'X']
+values_to_write = [i for i in data.values()]
+
 for i in range(len(values_to_write)):
     cell = columns_to_write[i] + f'{no_row_to_write+1}'
     body = {'values': [[values_to_write[i]]]}
