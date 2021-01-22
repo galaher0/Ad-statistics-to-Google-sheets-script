@@ -11,474 +11,6 @@ from os import path
 from backend import Backend
 
 
-# class GUI:
-
-# 	def __init__(self):
-# 		logger.info("gui init")
-# 		self.root = self.set_root()
-# 		self.main_menu = tk.Menu(self.root)
-# 		self.root.config(menu=self.main_menu)
-# 		self.options_menu = tk.Menu(self.main_menu, tearoff=0)
-# 		self.set_options_menu()
-# 		self.mainframe = tk.Frame(self.root, bg='grey')
-
-# 		self.backend = Backend()
-		
-# 		# MAIN VARIABLES
-# 		self.column_names = [
-# 			"Платформы", "ID", "Потрачено", "Показы", "Клики", 
-# 			"Охват", "Просмотры", "Период", "Начало", "Конец"
-# 		]
-# 		self.pf_names = self.backend.get_pf_names()
-# 		self.pf_count = len(self.pf_names)
-# 		self.period = ['Тек. месяц', 'Даты']
-# 		self.path_to_config = 'campaigns_config.yml'
-
-# 		self.input_data = self.load_config()
-
-# 		self.controllers = None
-# 		self.init_controllers()
-
-# 		# DRAWING
-# 		self.mainframe.pack(fill='both', expand=True)
-# 		self.set_headers()
-# 		if not self.input_data:
-# 			logger.info('Loading default frame')
-# 			tk.Label(
-# 				self.mainframe, 
-# 				text=u"Добро пожаловать в Авто Басю.\n\nПохоже, что это первый запуск программы (либо не было сохранено ни одной кампании).\n\nЧтобы приступить к работе, зайдите в\nНастройки > Платформы,\nчтобы выбрать платформы, с которыми предстоит работать, а также в\nНастройки > Google Таблица\nчтобы внести параметры Google таблицы, в которую предстоит экспортировать данные.", 
-# 				padx=10, pady=10
-# 				).grid(row=1, column=0, columnspan=len(self.column_names),
-# 					padx=20, pady=30)
-# 		else:
-# 			self.redraw_main()
-# 		self.set_footer()
-
-# 	def set_root(self):
-# 		logger.info("root setup")
-
-# 		r = tk.Tk()
-# 		r.title("Auto Basya")
-# 		return r
-
-# 	def set_options_menu(self):
-# 		'''
-# 		Options menu setup
-# 		'''
-# 		logger.info("options menu setup")
-
-# 		self.main_menu.add_cascade(label="Настройки", menu=self.options_menu)
-# 		self.options_menu.add_command(label="Платформы", 
-# 			command=self.pf_window)
-# 		self.options_menu.add_command(label="Google Таблица", 
-# 			command=self.gs_window)
-
-# 	def init_controllers(self):
-# 		'''Initializes controllers for the GUI if config exists'''
-		
-# 		self.controllers = {
-# 			pf: {
-# 				"var": tk.BooleanVar(value=(pf in self.input_data)),
-# 				"campaigns": OrderedDict([(i, {
-
-# 					'widgets': None,
-# 					'spent': tk.BooleanVar(value=self.input_data[pf][i]['spent']),
-# 					'impressions': tk.BooleanVar(value=self.input_data[pf][i]['impressions']),
-# 					'clicks': tk.BooleanVar(value=self.input_data[pf][i]['clicks']),
-# 					'reach': tk.BooleanVar(value=self.input_data[pf][i]['reach']),
-# 					'views': tk.BooleanVar(value=self.input_data[pf][i]['views']),
-# 					'period': tk.StringVar(value=self.input_data[pf][i]['period']),
-
-# 				}) for i in range(len(self.input_data.get(pf, [])))]),
-# 				"hash_next": len(self.input_data.get(pf, [])),
-# 			} for pf in self.pf_names
-# 		}
-
-# 		# Creating widgets rows and initializing Entry and DateEntry fields
-# 		for pf in self.pf_names:
-# 			for i in self.controllers[pf]['campaigns']:
-# 				self.controllers[pf]['campaigns'][i]['widgets'] = \
-# 				self.create_widget_list(pf, i)
-
-# 				self.controllers[pf]['campaigns'][i]['widgets'][0]\
-# 					.insert(0, self.input_data[pf][i]['id'])
-
-# 				self.controllers[pf]['campaigns'][i]['widgets'][7]\
-# 					.config(state='normal')
-# 				self.controllers[pf]['campaigns'][i]['widgets'][8]\
-# 					.config(state='normal')
-
-# 				if self.input_data[pf][i]['dates'] == 'Даты':
-# 					self.controllers[pf]['campaigns'][i]['widgets'][7]\
-# 						.set_date(self.input_data[pf][i]['dates'][0])
-# 					self.controllers[pf]['campaigns'][i]['widgets'][8]\
-# 						.set_date(self.input_data[pf][i]['dates'][1])
-# 				else:
-# 					self.controllers[pf]['campaigns'][i]['widgets'][7]\
-# 						.set_date(self.input_data[pf][i]['dates'][0])
-# 					self.controllers[pf]['campaigns'][i]['widgets'][8]\
-# 						.set_date(self.input_data[pf][i]['dates'][1]
-# 						if date.today().month > self.input_data[pf][i]['dates'][1].month
-# 						else date.today())
-
-# 				self.controllers[pf]['campaigns'][i]['widgets'][7]\
-# 					.config(state='disabled')
-# 				self.controllers[pf]['campaigns'][i]['widgets'][8]\
-# 					.config(state='disabled')
-
-# 	def set_headers(self):
-# 		'''
-# 		Setting top frame with headers for the following widgets
-# 		'''
-# 		logger.info("Headers construction")
-
-# 		for column in range(len(self.column_names)):
-# 			if column == 0:
-# 				tk.Label(
-# 					self.mainframe, 
-# 					text=self.column_names[column], 
-# 					padx=2, 
-# 					pady=2
-# 				).grid(row=0, column=column, padx=2,
-# 						   pady=2, sticky='nsew')
-# 			else:
-# 				tk.Label(
-# 					self.mainframe, 
-# 					text=self.column_names[column], 
-# 					padx=2, 
-# 					pady=2
-# 				).grid(row=0, column=column,
-# 						   pady=2, sticky='nsew')
-# 			self.mainframe.grid_columnconfigure(column, weight=1)
-
-# 	def pf_window(self):
-# 		'''
-# 		Open platforms' checklist setting window
-# 		'''
-# 		logger.info("platforms window call")
-		
-# 		pf_window = tk.Toplevel(padx=10, pady=10)
-# 		pf_window.title("Платформы")
-		
-# 		# Subject to change to grid
-# 		tip = tk.Label(pf_window, 
-# 			text="Отметьте галочкой платформы, \nиз которых требуется экспортировать данные"
-# 			).pack()
-
-# 		pf_checkboxes = tk.Frame(pf_window)
-
-# 		MAX_ROWS = 8
-# 		i = 0
-# 		for column in range(8):
-# 			if i < self.pf_count:
-# 				for row in range(MAX_ROWS):
-# 					if i < self.pf_count:
-# 						tk.Checkbutton(
-# 							pf_checkboxes, 
-# 							text=self.pf_names[i],
-# 							variable=self.controllers[self.pf_names[i]]['var'],
-# 							command=self.redraw_main,
-# 						).grid(sticky="w", row=row, column=column)
-# 						i += 1
-
-# 		pf_checkboxes.pack(fill='both', expand=True)
-
-# 		platforms_ok_btn = tk.Button(
-# 			pf_window, 
-# 			text="OK", 
-# 			command=pf_window.destroy
-# 			).pack(pady=10)
-
-# 	def gs_window(self):
-# 		'''
-# 		Open Google spreadsheet setting window
-# 		'''
-# 		logger.info("Google Spreadsheet window call")
-		
-# 		gs_window = tk.Toplevel(padx=10, pady=10)
-# 		gs_window.title("Настройки Google таблицы")
-		
-# 		# TO DO AUTOLOAD OF LISTS (AND MAYBE DIFFERENT DOC INIT)
-# 		sheets = [
-# 			'sheet1', 
-# 			'sheet2',
-# 			'sheet3'
-# 		] #self.backend.get_gs_sheets_list()
-# 		var = tk.BooleanVar()
-# 		sheet_dd_var = tk.StringVar(value=sheets[0])
-
-# 		gs_id_lbl = tk.Label(
-# 			gs_window, 
-# 			text="ID Google таблицы"
-# 			).grid(sticky="W", row=1, column=0)
-# 		gs_id_input = tk.Entry(gs_window, width=50)
-# 		gs_id_input.insert(0, '1M8L0eak4dJUv5cLyOlBUVvyaM3EZcE8wpY1j5dYDwdQ') #self.backend.get_spreadsheet_id()
-# 		gs_id_input.config(state='disabled') # due to insertion can't disable on initialization
-# 		gs_id_input.grid(sticky="W", row=2, column=0)
-		
-# 		sheet_lbl = tk.Label(
-# 			gs_window, 
-# 			text="Лист"
-# 			).grid(sticky="W", row=3, column=0)
-# 		sheet_dd = tk.OptionMenu(gs_window, sheet_dd_var, *sheets)
-# 		sheet_dd.config(state='disabled')
-# 		sheet_dd.grid(sticky="W", row=4, column=0)
-		
-# 		gs_cb = tk.Checkbutton(gs_window, text="Изменить", variable=var,
-# 			command=lambda e=gs_id_input, 
-# 							dd=sheet_dd, 
-# 							v=var: self.block_edit(e, dd, v)
-# 			).grid(sticky="W", row=0, column=0)
-
-# 		gs_ok_btn = tk.Button(
-# 			gs_window, 
-# 			text="OK", 
-# 			command=gs_window.destroy).grid(row=5, column=0)
-
-# 	def block_edit(self, entry, dd, var):
-# 		'''
-# 		Disables editing the Google spreadsheet id and sheet name unless a 
-# 		checkbox is clicked
-# 		'''
-# 		logger.info("Block editing function call")
-
-# 		if not var.get():
-# 			entry.config(state='disabled')
-# 			dd.config(state='disabled')
-# 		else:
-# 			entry.config(state='normal')
-# 			dd.config(state='normal')
-
-# 	def dates_block_edit(self, value, pf_name, row):
-# 		'''
-# 		Disables editing dates unless a specific option 'Даты' is chosen
-# 		'''
-# 		logger.info(f"Call to block dates editing with {value} {pf_name} {row}")
-
-# 		self.controllers[pf_name]['campaigns'][row]['widgets'][7]\
-# 		.config(state='normal')
-# 		self.controllers[pf_name]['campaigns'][row]['widgets'][8]\
-# 		.config(state='normal')
-
-# 		if value == self.period[0]:
-
-# 			self.controllers[pf_name]['campaigns'][row]['widgets'][7]\
-# 			.set_date(date.today().replace(day = 1))
-# 			self.controllers[pf_name]['campaigns'][row]['widgets'][8]\
-# 			.set_date(date.today())
-
-# 			self.controllers[pf_name]['campaigns'][row]['widgets'][7]\
-# 			.config(state='disabled')
-# 			self.controllers[pf_name]['campaigns'][row]['widgets'][8]\
-# 			.config(state='disabled')
-
-# 	def create_widget_list(self, pf_name, row):
-# 		'''
-# 		Returns a list with new widgets to insert campaign settings 
-# 		(because they depend on the campaign position in the list of campaigns)
-# 		'''
-# 		w = [tk.Entry(self.mainframe, width=50),
-# 			 tk.Checkbutton(self.mainframe,
-# 			 	variable=self.controllers[pf_name]['campaigns'][row]['spent']),
-# 			 tk.Checkbutton(self.mainframe,
-# 			 	variable=self.controllers[pf_name]['campaigns'][row]['impressions']),
-# 			 tk.Checkbutton(self.mainframe,
-# 			 	variable=self.controllers[pf_name]['campaigns'][row]['clicks']),
-# 			 tk.Checkbutton(self.mainframe,
-# 			 	variable=self.controllers[pf_name]['campaigns'][row]['reach']),
-# 			 tk.Checkbutton(self.mainframe,
-# 			 	variable=self.controllers[pf_name]['campaigns'][row]['views']),
-# 			 tk.OptionMenu(self.mainframe, 
-# 						   self.controllers[pf_name]['campaigns'][row]['period'], 
-# 						   *self.period, 
-# 						   command=lambda value, x=pf_name, y=row: 
-# 								self.dates_block_edit(value, x, y)),
-# 			 tkc.DateEntry(self.mainframe, date_pattern="dd.mm.y", 
-# 							  locale='ru_RU', day=1),
-# 			 tkc.DateEntry(self.mainframe, date_pattern="dd.mm.y", 
-# 							  locale='ru_RU'),
-# 			 tk.Button(self.mainframe, text='Удалить', command=lambda x=pf_name, y=row: self.delete_row(x, y))]
-
-# 		w[7].config(state='disabled')
-# 		w[8].config(state='disabled')
-
-# 		return w
-
-# 	def append_row(self, pf_name,):
-# 		'''
-# 		Creates data container and widgets for newly added campaign row
-# 		'''
-# 		logger.info(f"Appending row to {pf_name}")
-
-# 		# if self.controllers[pf_name]['var'].get():
-# 		_hash = self.controllers[pf_name]['hash_next']
-
-# 		self.controllers[pf_name]['campaigns'][_hash] = {
-# 			'widgets': None, 
-# 			'spent': tk.BooleanVar(),
-# 			'impressions': tk.BooleanVar(),
-# 			'clicks': tk.BooleanVar(),
-# 			'reach': tk.BooleanVar(),
-# 			'views': tk.BooleanVar(), # need to confirm name
-# 			'period': tk.StringVar(value=self.period[0])
-# 		}
-
-# 		new_row = self.create_widget_list(pf_name, _hash)
-
-# 		self.controllers[pf_name]['campaigns'][_hash]['widgets'] = new_row
-# 		self.controllers[pf_name]['hash_next'] += 1
-
-# 		self.redraw_main()
-
-# 	def delete_row(self, pf_name, row):
-# 		'''
-# 		Deletes data container and widgets for unnecessary campaign row
-# 		'''
-# 		logger.info(f"Deleting {row} row in {pf_name} block")
-
-# 		# n_campaigns = len(self.controllers[pf_name]['campaigns'])
-# 		self.controllers[pf_name]['campaigns'].pop(row)
-
-# 		# Update widgets list for the rest campaigns
-# 		# Because checkboxes are linked to objects located in campaigns list
-# 		# if row + 1 < n_campaigns:
-# 		# 	for i in range(row, n_campaigns-1):
-# 		# 		updated_row = self.create_widget_list(pf_name, i)
-
-# 		# 		self.controllers[pf_name]['campaigns'][i]['widgets'] = updated_row
-
-# 		self.redraw_main()
-
-# 	def clear_main(self):
-# 		'''
-# 		Clears table for info inserting from widgets
-# 		'''
-# 		logger.info(f"Call to clear main")
-# 		columns, rows = self.mainframe.grid_size()
-# 		for c in range(columns):
-# 			for r in range(1, rows):
-# 				try:
-# 					self.mainframe.grid_slaves(row=r, column=c)[0].grid_forget()
-# 				except:
-# 					continue
-
-# 	def redraw_main(self):
-# 		'''
-# 		Saves currently entered info, deletes current content and 
-# 		refills window with a new one
-# 		'''
-# 		logger.info(f"Redrawing main")
-
-# 		# self.save_values()
-# 		self.clear_main()
-		
-# 		r = 1 # starting drawing from the second row because the first is headers
-# 		for pf in self.pf_names:
-# 			if self.controllers[pf]['var'].get():
-
-# 				n_campaigns = len(self.controllers[pf]['campaigns'])
-
-# 				tk.Label(self.mainframe, text=pf).grid(
-# 					row=r, column=0, rowspan=n_campaigns+1,
-# 					sticky='nsew', padx=2, pady=2
-# 				)
-
-# 				i, j = 0, len(self.column_names)
-# 				for i, campaign in enumerate(self.controllers[pf]['campaigns'].values()):
-# 					for j, frame in enumerate(campaign['widgets']):
-# 						frame.grid(row=i+r, column=j+1, sticky='nsew', pady=2)
-
-# 				tk.Button(self.mainframe, text=f'Добавить кампанию {pf}', 
-# 					command=lambda x=pf: self.append_row(x)).grid(
-# 						row=r+(0 or n_campaigns), column=1, 
-# 						columnspan=j, sticky="nsew", pady=2
-# 					)
-
-# 				r += (0 or n_campaigns) + 1
-
-# 	def save_values(self):
-# 		'''
-# 		Saves entered info to internal dict
-# 		'''
-# 		logger.info('Call to save input')
-# 		self.input_data.clear()
-# 		for pf in self.pf_names:
-# 			if self.controllers[pf]['var'].get():
-# 				self.input_data[pf] = []
-# 				for campaign in self.controllers[pf]['campaigns'].values():
-# 					self.input_data[pf].append({
-
-# 						'id': campaign['widgets'][0].get(),
-# 						'spent': campaign['spent'].get(),
-# 						'impressions': campaign['impressions'].get(),
-# 						'clicks': campaign['clicks'].get(),
-# 						'reach': campaign['reach'].get(),
-# 						'views': campaign['views'].get(),
-# 						'period': campaign['period'].get(),
-# 						'dates': [
-
-# 							campaign['widgets'][7].get_date(),
-# 							campaign['widgets'][8].get_date()
-
-# 						]
-# 					})
-# 		logger.info(f'Input {self.input_data} saved to internal dict')
-
-# 	def save_config(self):
-# 		logger.info('Call to save config file')
-# 		with open(self.path_to_config, 'w') as f:
-# 			yaml.dump(self.input_data, f, allow_unicode=True)
-# 		logger.info('Input saved to disk')
-
-# 	def load_config(self):
-# 		logger.info('Call to load config')
-# 		if path.exists(self.path_to_config):
-# 			with open(self.path_to_config, 'r') as y:
-# 				conf = yaml.safe_load(y)
-# 			logger.info(f'Config loaded {conf}')
-# 			return conf
-# 		logger.info('Returning empty config')
-# 		return {}
-
-# 	def set_footer(self):
-# 		'''
-# 		Sets up footer of the GUI with two buttons
-# 		'''
-# 		footer = tk.Frame(self.root)
-# 		save_start_btn = tk.Button(footer, text="Сохранить и Запустить",
-# 			command=self.save_start_process_btn, padx=5)
-# 		save_btn = tk.Button(footer, text="Сохранить",
-# 			command=self.save_btn, padx=5)
-# 		save_btn.grid(row=0, column=0, sticky='E', padx=5, pady=10)
-# 		save_start_btn.grid(row=0, column=1, sticky='E', padx=5, pady=10)
-# 		footer.columnconfigure((0,), weight=1)
-# 		footer.pack(fill='both', expand=True, padx=5)
-
-# 	def set_progress_bar(self):
-# 		'''
-# 		Sets up progress bar to track the execution of the main process 
-# 		in the backend
-# 		'''
-# 		# TO DO
-# 		pass
-
-# 	def save_start_process_btn(self):
-# 		logger.info('Saving values to dict and to disk')
-# 		self.save_values()
-# 		self.save_config()
-# 		self.set_progress_bar()
-# 		logger.info('Running main backend process')
-# 		self.backend.run(self.input_data)
-
-# 	def save_btn(self):
-# 		logger.info('Saving values to dict and to disk')
-# 		self.save_values()
-# 		self.save_config()
-
-# 	def run(self):
-# 		self.root.mainloop()
-
-
 class Row:
 	"""
 	Controls widgets relating to a campaign
@@ -488,8 +20,7 @@ class Row:
 
 		# Main variables
 		self.period = ['Тек. месяц', 'Даты']
-		self.id_entry_default_text = 'default text'
-		# self.id_entry_default_text2 = 'default text'
+		
 		self.spent_var = tk.BooleanVar(
 			value=(init_state['spent'] if init_state else False)
 			)
@@ -542,15 +73,6 @@ class Row:
 			# Disabling editing mode
 			for i in range(1, 8):
 				self.widgets[i].config(state='disabled')
-
-		# else:
-		# 	self.has_default_text = True
-		# 	self.widgets[1].insert(0, self.id_entry_default_text)
-		# 	self.widgets[1].bind("<Button-1>", self.del_placeholder)
-		# 	if has_client_id:
-		# 		self.has_default_text2 = True
-		# 		self.widgets.insert(0, self.id_entry_default_text2)  
-		# 		self.widgets.bind("<Button-1>", self.del_placeholder2)
 
 		self.widgets[8].config(state='disabled')
 		self.widgets[9].config(state='disabled')
@@ -694,10 +216,6 @@ class GSpreadWin(tk.Toplevel):
 		self.title("Настройки Google таблицы")
 		self.gs_config = self.backend.get_gs_config()
 
-		# MAIN VARIABLES
-
-		# self.sheets = None
-
 		# MAIN WIDGETS
 
 		self.id_input = tk.Entry(self, width=50)
@@ -723,8 +241,6 @@ class GSpreadWin(tk.Toplevel):
 
 		# Different flows for known and unknown Google Spreadsheets settings (id, sheet name, columns)
 		if 'spreadsheet_id' in self.gs_config:
-
-			# self.sheets = [self.gs_config['sheet_name']] # lazy
 			
 			self.id_lbl = tk.Label(self, text="ID Google таблицы:")
 			self.id_lbl.grid(sticky="W", row=1, column=0, pady=2)
@@ -1188,53 +704,6 @@ class Program(tk.Tk):
 			command=pf_window.destroy
 			).pack(pady=10)
 
-	# def gs_window(self):
-		'''
-		Open Google spreadsheet setting window
-		'''
-
-		# GSpreadWin(self.backend)
-		
-		# gs_window = tk.Toplevel(padx=10, pady=10)
-		# gs_window.title("Настройки Google таблицы")
-		
-		# TO DO AUTOLOAD OF LISTS (AND MAYBE DIFFERENT DOC INIT)
-		# sheets = [
-		# 	'sheet1', 
-		# 	'sheet2',
-		# 	'sheet3'
-		# # ] #self.backend.get_gs_sheets_list()
-		# var = tk.BooleanVar()
-		# sheet_dd_var = tk.StringVar(value=sheets[0])
-
-		# gs_id_lbl = tk.Label(
-		# 	gs_window, 
-		# 	text="ID Google таблицы"
-		# ).grid(sticky="W", row=1, column=0)
-		# gs_id_input = tk.Entry(gs_window, width=50)
-		# gs_id_input.insert(0, '1M8L0eak4dJUv5cLyOlBUVvyaM3EZcE8wpY1j5dYDwdQ') #self.backend.get_spreadsheet_id()
-		# gs_id_input.config(state='disabled') # due to insertion can't disable on initialization
-		# gs_id_input.grid(sticky="W", row=2, column=0)
-		
-		# sheet_lbl = tk.Label(
-		# 	gs_window, 
-		# 	text="Лист"
-		# ).grid(sticky="W", row=3, column=0)
-		# sheet_dd = tk.OptionMenu(gs_window, sheet_dd_var, *sheets)
-		# sheet_dd.config(state='disabled')
-		# sheet_dd.grid(sticky="W", row=4, column=0)
-		
-		# gs_cb = tk.Checkbutton(gs_window, text="Изменить", variable=var,
-		# 	command=lambda e=gs_id_input, 
-		# 					dd=sheet_dd, 
-		# 					v=var: self.block_edit(e, dd, v)
-		# ).grid(sticky="W", row=0, column=0)
-
-		# gs_ok_btn = tk.Button(
-		# 	gs_window, 
-		# 	text="OK", 
-		# 	command=gs_window.destroy).grid(row=5, column=0)
-
 	def show_hide_pf(self, pf):
 		'''
 		Clears table for info inserting from widgets
@@ -1261,15 +730,19 @@ class Program(tk.Tk):
 		logger.info(f'Input {self.input_data} saved to internal dict')
 
 	def save_config(self):
+		'''Saves campaign parsing parameters to disk'''
+
 		logger.info('Call to save config file')
 		with open(self.path_to_config, 'w', encoding='utf-8') as f:
 			yaml.dump(self.input_data, f, allow_unicode=True)
 		logger.info('Input saved to disk')
 
 	def load_config(self):
+		'''Loads campaign parsing parameters'''
+
 		logger.info('Call to load config')
 		if path.exists(self.path_to_config):
-			with open(self.path_to_config, 'r') as y:
+			with open(self.path_to_config, 'r', encoding='utf-8') as y:
 				conf = yaml.safe_load(y)
 			logger.info(f'Config loaded {conf}')
 			return conf
@@ -1280,6 +753,7 @@ class Program(tk.Tk):
 		'''
 		Sets up footer of the GUI with two buttons
 		'''
+		
 		self.footer = tk.Frame(self)
 		save_start_btn = tk.Button(self.footer, text="Сохранить и Запустить",
 			command=self.save_start_process_btn, padx=5)

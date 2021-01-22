@@ -325,18 +325,6 @@ class Backend:
 				else:
 					logger.debug(f"Unknown FB result target: {j['data'][0]['rows'][0]['dimension_values'][3]}")
 
-				# for entry in j['data'][0]['rows']:
-				# 	data[entry['dimension_values'][0]] = {}
-				# 	data[entry['dimension_values'][0]]['result'] = \
-				# 		entry['result_values'][0]['value']
-				# 	for i in range(len(j['data'][0]['headers']['atomic_columns'])):
-				# 		data[
-				# 			entry['dimension_values'][0]
-				# 		][
-				# 			translate[ # Using universal keys instead of FB native
-				# 				j['data'][0]['headers']['atomic_columns'][i]['name']
-				# 			]
-				# 		] = entry['atomic_values'][i]
 			except Exception as e:
 				logger.debug(f'Error occured while trying to parse this data: \n{e}')
 
@@ -394,49 +382,6 @@ class Backend:
 		'''
 
 		for c in campaigns:
-
-			# Getting a list of currently active campaigns
-
-			# self.config['MyTarget']['get_active_campaigns']['headers'].update(
-			# 	{
-			# 		'X-Target-Sudo': f"target.deltaclick@mail.ru,{c['client_id']}",
-			# 		'Referer': f"https://target.my.com/dashboard?sudo="
-			# 			f"target.deltaclick%40mail.ru%2C{c['client_id']}"
-			# 	}
-			# )
-			# self.config['MyTarget']['get_active_campaigns']['params'].update(
-			# 	{
-			# 		'_user_id__in': client_internal_ids[c['client_id']],
-			# 		'_': str(int(time.time() * 1000))
-			# 	}
-			# )
-
-			# r = requests.get(
-			# 	'https://target.my.com/api/v2/campaigns.json',
-			# 	headers=self.config['MyTarget']['get_active_campaigns']['headers'], 
-			# 	params=self.config['MyTarget']['get_active_campaigns']['params'], 
-			# 	cookies=self.cj
-			# )
-			# j = r.json()
-
-			# logger.debug(f'Got campaigns json: {j}')
-
-			# campaigns = []
-			# for i in j['items']:
-			# 	if i['delivery'] == 'delivering':
-			# 		campaigns.append(str(i['id']))
-
-			'''For some reason during the active period campaigns can chnage 
-			their status to idle. So, not to miss them we store them in config 
-			and combine with future	responses'''
-
-			# campaigns = self.union(campaigns, 
-			# 						self.config['MyTarget']['cur_campaigns'])
-			# self.config['MyTarget']['cur_campaigns'] = campaigns
-
-			# logger.debug(f'Active campaigns: {campaigns}')
-			# campaigns = ['34482609', '34482513', '34367165', '34367127', '34367104', '34367057']
-			# limit = str(len(campaigns))
 
 			# Getting ad data
 
@@ -553,79 +498,3 @@ class Backend:
 		logger.info(f"Data to write to GS: {self.data_to_write}")
 		self.write_to_gspread()
 		self.save_config()
-
-
-'''
-class GoogleSpreadsheet:
-	
-	# If modifying these scopes, delete the file token.pickle.
-	SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-
-	def __init__(self, spreadsheet_id, range_name):
-		self.spreadsheet_id = spreadsheet_id
-		self.range = range_name
-		self._creds = self._get_creds()
-
-	def _get_creds(self):
-		"""
-		The file token.pickle stores the user's access and refresh tokens, 
-		and is created automatically when the authorization flow completes 
-		for the first time.
-		"""
-
-		creds = None
-		
-		if os.path.exists('token.pickle'):
-			with open('token.pickle', 'rb') as token:
-				creds = pickle.load(token)
-
-		# If there are no (valid) credentials available, let the user log in.
-		if not creds or not creds.valid:
-			if creds and creds.expired and creds.refresh_token:
-				creds.refresh(Request())
-			else:
-				flow = InstalledAppFlow.from_client_secrets_file(
-					'credentials.json', self.SCOPES)
-				creds = flow.run_local_server(port=0)
-			# Save the credentials for the next run
-			with open('token.pickle', 'wb') as token:
-				pickle.dump(creds, token)
-
-		return creds
-
-	def write(self, id_, data):
-
-		service = build('sheets', 'v4', credentials=self._creds)
-
-		# Call the Sheets API
-		sheet = service.spreadsheets()
-		result = sheet.values().get(spreadsheetId=self.spreadsheet_id,
-								   range=self.range).execute()
-		values = result.get('values', [])
-
-		if not values:
-			print('Данные не найдены.\n')
-		else:
-			print('Гугл таблица найдена\n')
-
-		# Finding a row to write values using ad id
-		id_column = [values[i][0] if values[i] else "" for i in range(len(values))]
-		if id_ in id_column:
-			no_row_to_write = id_column.index(id_)
-		else:
-			print("ID кампании не найден в Гугл таблице. Выход из программы.")
-			exit(1)
-
-		# Columns numbers are hardcoded
-		columns_to_write = ['J', 'M', 'U', 'V', 'X']
-		values_to_write = [i for i in data.values()]
-
-		for i in range(len(values_to_write)):
-			cell = columns_to_write[i] + f'{no_row_to_write+1}'
-			body = {'values': [[values_to_write[i]]]}
-			result = service.spreadsheets().values().update(
-				spreadsheetId=self.spreadsheet_id, range=cell,
-				valueInputOption='USER_ENTERED', body=body).execute()
-			print('{} cell updated in the {} cell.'
-				.format(result.get('updatedCells'), cell))
-'''
