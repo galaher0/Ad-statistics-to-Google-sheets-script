@@ -1,5 +1,5 @@
 ## Ad Parser
-&nbsp;
+
 #### About
 ___
 
@@ -9,7 +9,6 @@ I suggested to develop an app for him to automate this process. Python is well s
 
 As a result this application even in the current version (I focused efforts on parsing the most loaded ad platfroms) saves approx. 50% of time my friend spent on this routine.
 
-&nbsp;
 #### App Workflow
 ___
 
@@ -27,7 +26,6 @@ Then the main window displays fields to be filled by user:
 2. After filling out all the necessary forms user may save current work by pressing the save button or launch the main process (which also saves config for future launches).
 3. In the end user receives a short report on the work done.
 
-&nbsp;
 #### Problems solved 
 ___
 
