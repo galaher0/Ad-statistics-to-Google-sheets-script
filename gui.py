@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import tkcalendar as tkc
-import tkinter as tk
 import yaml
+from backend import Backend
 from calendar import monthrange
 from collections import OrderedDict
 from datetime import date
 from loguru import logger
 from os import path
-from backend import Backend
+from tkcalendar import DateEntry
+from tkinter import Tk, Frame, Toplevel, Menu, BooleanVar, StringVar, Label, Button, Entry, Checkbutton, OptionMenu
 
 
 class Row:
@@ -21,43 +21,43 @@ class Row:
 		# Main variables
 		self.period = ['Тек. месяц', 'Даты']
 		
-		self.spent_var = tk.BooleanVar(
+		self.spent_var = BooleanVar(
 			value=(init_state['spent'] if init_state else False)
 			)
-		self.impressions_var = tk.BooleanVar(
+		self.impressions_var = BooleanVar(
 			value=(init_state['impressions'] if init_state else False)
 			)
-		self.clicks_var = tk.BooleanVar(
+		self.clicks_var = BooleanVar(
 			value=(init_state['clicks'] if init_state else False)
 			)
-		self.reach_var = tk.BooleanVar(
+		self.reach_var = BooleanVar(
 			value=(init_state['reach'] if init_state else False)
 			)
-		self.views_var = tk.BooleanVar(
+		self.views_var = BooleanVar(
 			value=(init_state['views'] if init_state else False)
 			)
-		self.period_var = tk.StringVar(
+		self.period_var = StringVar(
 			value=(init_state['period'] if init_state else self.period[0])
 			)
 		
 		# Widgets
 		self.widgets = {
-			1: tk.Entry(parent, width=50),
-			2: tk.Checkbutton(parent, variable=self.spent_var),
-			3: tk.Checkbutton(parent, variable=self.impressions_var),
-			4: tk.Checkbutton(parent, variable=self.clicks_var),
-			5: tk.Checkbutton(parent, variable=self.reach_var),
-			6: tk.Checkbutton(parent, variable=self.views_var),
-			7: tk.OptionMenu(parent, self.period_var, *self.period, 
+			1: Entry(parent, width=50),
+			2: Checkbutton(parent, variable=self.spent_var),
+			3: Checkbutton(parent, variable=self.impressions_var),
+			4: Checkbutton(parent, variable=self.clicks_var),
+			5: Checkbutton(parent, variable=self.reach_var),
+			6: Checkbutton(parent, variable=self.views_var),
+			7: OptionMenu(parent, self.period_var, *self.period, 
 				command=lambda value: self.dates_block_edit(value)),
-			8: tkc.DateEntry(parent, date_pattern="dd.mm.y", locale='ru_RU', 
+			8: DateEntry(parent, date_pattern="dd.mm.y", locale='ru_RU', 
 				day=1),
-			9: tkc.DateEntry(parent, date_pattern="dd.mm.y", locale='ru_RU', 
+			9: DateEntry(parent, date_pattern="dd.mm.y", locale='ru_RU', 
 				day=self.ldom())
 		}
 
 		if has_client_id:
-			self.widgets.update({0: tk.Entry(parent, width=50)})
+			self.widgets.update({0: Entry(parent, width=50)})
 
 		# Initializing Entry and DateEntry fields
 		if init_state:
@@ -161,7 +161,7 @@ class ColumnRow:
 				"Охват", "Просмотры", "Период", "Начало", "Конец"
 			]
 			for column_idx in range(len(self.column_names)):
-				tk.Label(
+				Label(
 
 					parent, 
 					text=self.column_names[column_idx], 
@@ -184,7 +184,7 @@ class ColumnRow:
 				"Охват", "Просмотры", "Период", "Начало", "Конец"
 			]
 			for column_idx in range(len(self.column_names)):
-				tk.Label(
+				Label(
 
 					parent, 
 					text=self.column_names[column_idx], 
@@ -203,7 +203,7 @@ class ColumnRow:
 			parent.grid_columnconfigure(column_idx, weight=1)
 
 
-class GSpreadWin(tk.Toplevel):
+class GSpreadWin(Toplevel):
 	'''Controls widgets and settings for Google Spreadsheet'''
 
 	def __init__(self, backend_obj, *args, **kwargs):
@@ -218,31 +218,31 @@ class GSpreadWin(tk.Toplevel):
 
 		# MAIN WIDGETS
 
-		self.id_input = tk.Entry(self, width=50)
+		self.id_input = Entry(self, width=50)
 
-		self.sheets_dd_var = tk.StringVar(value=self.gs_config.get('sheet_name', ''))
+		self.sheets_dd_var = StringVar(value=self.gs_config.get('sheet_name', ''))
 
 		# column confirm widgets
-		self.date_lbl = tk.Label(self, text="Дата")
-		self.fb_result_lbl = tk.Label(self, text="Конверсии в FB")
-		self.spent_lbl = tk.Label(self, text="Потрачено")
-		self.impressions_lbl = tk.Label(self, text="Показы")
-		self.clicks_lbl = tk.Label(self, text="Клики")
-		self.reach_lbl = tk.Label(self, text="Охват")
-		# self.views_lbl = tk.Label(self, text="Просмотры")
+		self.date_lbl = Label(self, text="Дата")
+		self.fb_result_lbl = Label(self, text="Конверсии в FB")
+		self.spent_lbl = Label(self, text="Потрачено")
+		self.impressions_lbl = Label(self, text="Показы")
+		self.clicks_lbl = Label(self, text="Клики")
+		self.reach_lbl = Label(self, text="Охват")
+		# self.views_lbl = Label(self, text="Просмотры")
 
-		self.date_dd_var = tk.StringVar(value=self.gs_config.get('columns', {'date': {'name': ''}})['date']['name'])
-		self.fb_result_dd_var = tk.StringVar(value=self.gs_config.get('columns', {'result': {'name': ''}})['result']['name'])
-		self.spent_dd_var = tk.StringVar(value=self.gs_config.get('columns', {'spent': {'name': ''}})['spent']['name'])
-		self.impressions_dd_var = tk.StringVar(value=self.gs_config.get('columns', {'impressions': {'name': ''}})['impressions']['name'])
-		self.clicks_dd_var = tk.StringVar(value=self.gs_config.get('columns', {'clicks': {'name': ''}})['clicks']['name'])
-		self.reach_dd_var = tk.StringVar(value=self.gs_config.get('columns', {'reach': {'name': ''}})['reach']['name'])
-		# self.views_dd_var = tk.StringVar(value=self.gs_config.get('columns', {'views': {'name': ''}})['views']['name'])
+		self.date_dd_var = StringVar(value=self.gs_config.get('columns', {'date': {'name': ''}})['date']['name'])
+		self.fb_result_dd_var = StringVar(value=self.gs_config.get('columns', {'result': {'name': ''}})['result']['name'])
+		self.spent_dd_var = StringVar(value=self.gs_config.get('columns', {'spent': {'name': ''}})['spent']['name'])
+		self.impressions_dd_var = StringVar(value=self.gs_config.get('columns', {'impressions': {'name': ''}})['impressions']['name'])
+		self.clicks_dd_var = StringVar(value=self.gs_config.get('columns', {'clicks': {'name': ''}})['clicks']['name'])
+		self.reach_dd_var = StringVar(value=self.gs_config.get('columns', {'reach': {'name': ''}})['reach']['name'])
+		# self.views_dd_var = StringVar(value=self.gs_config.get('columns', {'views': {'name': ''}})['views']['name'])
 
 		# Different flows for known and unknown Google Spreadsheets settings (id, sheet name, columns)
 		if 'spreadsheet_id' in self.gs_config:
 			
-			self.id_lbl = tk.Label(self, text="ID Google таблицы:")
+			self.id_lbl = Label(self, text="ID Google таблицы:")
 			self.id_lbl.grid(sticky="W", row=1, column=0, pady=2)
 
 			self.id_input.insert(0, self.gs_config['spreadsheet_id'])
@@ -251,24 +251,24 @@ class GSpreadWin(tk.Toplevel):
 
 			if 'sheet_name' in self.gs_config:
 				
-				self.sheet_lbl = tk.Label(self, text="Лист:")
+				self.sheet_lbl = Label(self, text="Лист:")
 				self.sheet_lbl.grid(sticky="W", row=3, column=0, pady=2)
 
-				self.sheets_dd = tk.OptionMenu(self, self.sheets_dd_var, self.gs_config['sheet_name'])
+				self.sheets_dd = OptionMenu(self, self.sheets_dd_var, self.gs_config['sheet_name'])
 				self.sheets_dd.config(state='disabled')
 				self.sheets_dd.grid(sticky="WE", row=4, column=0)
 
 				if 'columns' in self.gs_config:
 
-					self.columns_lbl = tk.Label(self, text="Названия столбцов для каждого показателя:")
+					self.columns_lbl = Label(self, text="Названия столбцов для каждого показателя:")
 
-					self.date_dd = tk.OptionMenu(self, self.date_dd_var, self.gs_config['columns']['date']['name'])
-					self.fb_result_dd = tk.OptionMenu(self, self.fb_result_dd_var, self.gs_config['columns']['result']['name'])
-					self.spent_dd = tk.OptionMenu(self, self.spent_dd_var, self.gs_config['columns']['spent']['name'])
-					self.impressions_dd = tk.OptionMenu(self, self.impressions_dd_var, self.gs_config['columns']['impressions']['name'])
-					self.clicks_dd = tk.OptionMenu(self, self.clicks_dd_var, self.gs_config['columns']['clicks']['name'])
-					self.reach_dd = tk.OptionMenu(self, self.reach_dd_var, self.gs_config['columns']['reach']['name'])
-					# self.views_dd = tk.OptionMenu(self, self.views_dd_var, self.gs_config['columns']['views']['name'])
+					self.date_dd = OptionMenu(self, self.date_dd_var, self.gs_config['columns']['date']['name'])
+					self.fb_result_dd = OptionMenu(self, self.fb_result_dd_var, self.gs_config['columns']['result']['name'])
+					self.spent_dd = OptionMenu(self, self.spent_dd_var, self.gs_config['columns']['spent']['name'])
+					self.impressions_dd = OptionMenu(self, self.impressions_dd_var, self.gs_config['columns']['impressions']['name'])
+					self.clicks_dd = OptionMenu(self, self.clicks_dd_var, self.gs_config['columns']['clicks']['name'])
+					self.reach_dd = OptionMenu(self, self.reach_dd_var, self.gs_config['columns']['reach']['name'])
+					# self.views_dd = OptionMenu(self, self.views_dd_var, self.gs_config['columns']['views']['name'])
 
 					self.grid_column_choice()
 
@@ -281,23 +281,23 @@ class GSpreadWin(tk.Toplevel):
 				self.id_check_step()
 
 		else:
-			self.id_lbl = tk.Label(self, text="Введите ID Google таблицы")
+			self.id_lbl = Label(self, text="Введите ID Google таблицы")
 			self.id_lbl.grid(sticky="W", row=1, column=0)
 
 			self.id_input.grid(sticky="W", row=2, column=0, pady=2)
 
-			self.id_confirm_btn = tk.Button(
+			self.id_confirm_btn = Button(
 				self, 
 				text="Далее", 
 				command=self.id_check_step)
 			self.id_confirm_btn.grid(row=2, column=1, padx=5, pady=2)
 
-			self.id_warning_lbl = tk.Label(self, text="Неверный ID")
+			self.id_warning_lbl = Label(self, text="Неверный ID")
 
-		self.gs_ok_btn = tk.Button(self, text="OK", command=self.destroy)
+		self.gs_ok_btn = Button(self, text="OK", command=self.destroy)
 		self.gs_ok_btn.grid(row=14, column=0, pady=2)
 
-		self.change_btn = tk.Button(self, text="Изменить", command=self.change_settings)
+		self.change_btn = Button(self, text="Изменить", command=self.change_settings)
 		self.change_btn.grid(sticky="W", row=14, column=1, pady=2)
 
 	def change_settings(self):
@@ -310,19 +310,19 @@ class GSpreadWin(tk.Toplevel):
 				if self.grid_slaves(row=row, column=col):
 					self.grid_slaves(row=row, column=col)[0].grid_forget()
 
-		self.id_lbl = tk.Label(self, text="Введите ID Google таблицы")
+		self.id_lbl = Label(self, text="Введите ID Google таблицы")
 		self.id_lbl.grid(sticky="W", row=1, column=0)
 
 		self.id_input.grid(sticky="W", row=2, column=0, pady=2)
 		self.id_input.config(state='normal')
 
-		self.id_confirm_btn = tk.Button(
+		self.id_confirm_btn = Button(
 			self, 
 			text="Далее", 
 			command=self.id_check_step)
 		self.id_confirm_btn.grid(row=2, column=1, padx=5, pady=2)
 
-		self.id_warning_lbl = tk.Label(self, text="Неверный ID")
+		self.id_warning_lbl = Label(self, text="Неверный ID")
 
 	def id_check_step(self):
 		'''Validates user Google Spreadsheet id input and constructs necessary 
@@ -339,13 +339,13 @@ class GSpreadWin(tk.Toplevel):
 				self.id_warning_lbl.grid(row=3, column=0, pady=2)
 			else:
 				self.id_confirm_btn.grid_forget()
-				self.sheet_lbl = tk.Label(self, text="Выберите лист с данными:")
+				self.sheet_lbl = Label(self, text="Выберите лист с данными:")
 				self.sheet_lbl.grid(row=3, column=0, pady=2)
 				
-				self.sheets_dd = tk.OptionMenu(self, self.sheets_dd_var, *self.sheets)
+				self.sheets_dd = OptionMenu(self, self.sheets_dd_var, *self.sheets)
 				self.sheets_dd.grid(sticky="ew", row=4, column=0, pady=2)
 				
-				self.sheet_confirm_btn = tk.Button(
+				self.sheet_confirm_btn = Button(
 					self, 
 					text="Далее",
 					command=self.get_columns_names_step
@@ -360,19 +360,19 @@ class GSpreadWin(tk.Toplevel):
 		sheet_name = self.sheets_dd_var.get()
 		column_list = self.backend.get_columns(sheet_name)
 
-		self.columns_lbl = tk.Label(self, text="Отметьте названия столбцов для каждого показателя:")
+		self.columns_lbl = Label(self, text="Отметьте названия столбцов для каждого показателя:")
 
-		self.date_dd = tk.OptionMenu(self, self.date_dd_var, *column_list)
-		self.fb_result_dd = tk.OptionMenu(self, self.fb_result_dd_var, *column_list)
-		self.spent_dd = tk.OptionMenu(self, self.spent_dd_var, *column_list)
-		self.impressions_dd = tk.OptionMenu(self, self.impressions_dd_var, *column_list)
-		self.clicks_dd = tk.OptionMenu(self, self.clicks_dd_var, *column_list)
-		self.reach_dd = tk.OptionMenu(self, self.reach_dd_var, *column_list)
-		# self.views_dd = tk.OptionMenu(self, self.views_dd_var, *column_list)
+		self.date_dd = OptionMenu(self, self.date_dd_var, *column_list)
+		self.fb_result_dd = OptionMenu(self, self.fb_result_dd_var, *column_list)
+		self.spent_dd = OptionMenu(self, self.spent_dd_var, *column_list)
+		self.impressions_dd = OptionMenu(self, self.impressions_dd_var, *column_list)
+		self.clicks_dd = OptionMenu(self, self.clicks_dd_var, *column_list)
+		self.reach_dd = OptionMenu(self, self.reach_dd_var, *column_list)
+		# self.views_dd = OptionMenu(self, self.views_dd_var, *column_list)
 
 		self.grid_column_choice()
 
-		self.confirm_settings_btn = tk.Button(self, text="Подтвердить", command=self.confirm_gs_settings)
+		self.confirm_settings_btn = Button(self, text="Подтвердить", command=self.confirm_gs_settings)
 		self.confirm_settings_btn.grid(row=14, column=0)
 
 	def grid_column_choice(self):
@@ -400,7 +400,7 @@ class GSpreadWin(tk.Toplevel):
 		'''Action binded to settings confirm button: makes sure that all options 
 		are selected by the user and sends input to backend process to store'''
 
-		self.columns_warning_lbl = tk.Label(self, text="Не все столбцы выбраны")
+		self.columns_warning_lbl = Label(self, text="Не все столбцы выбраны")
 		self.columns_warning_lbl.grid_forget()
 		column_choice = {
 			'date': self.date_dd_var.get(),
@@ -416,25 +416,25 @@ class GSpreadWin(tk.Toplevel):
 		else:
 			logger.debug(f'column_choice: {column_choice}')
 			self.backend.send_column_choice(column_choice)
-			tk.Label(self, text="Настройки сохранены").grid(row=12, column=0)
+			Label(self, text="Настройки сохранены").grid(row=12, column=0)
 			self.confirm_settings_btn.grid_forget()
 
 
-class Limitations(tk.Toplevel):
+class Limitations(Toplevel):
 	'''Contains necessary info about current program limitations and assumptions'''
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.config(padx=10, pady=10)
 		self.title("Ограничения программы")
-		tk.Label(self, text="- После первого запуска с данной кампанией нельзя менять ее ряд в Гугл таблице").pack()
-		tk.Label(self, text="- Если столбцы меняются местами, нужно заново пройти процесс настройки Гугл таблицы").pack()
-		tk.Label(self, text="- Если нет инета, прога не запустится").pack()
-		tk.Label(self, text="- Программа предполагает, что названия столбцов находятся в первом ряду Гугл таблицы").pack()
-		tk.Label(self, text="- Пользователь должен быть авторизован на всех платформах в бразузере Google Chrome").pack()
+		Label(self, text="- После первого запуска с данной кампанией нельзя менять ее ряд в Гугл таблице").pack()
+		Label(self, text="- Если столбцы меняются местами, нужно заново пройти процесс настройки Гугл таблицы").pack()
+		Label(self, text="- Если нет инета, прога не запустится").pack()
+		Label(self, text="- Программа предполагает, что названия столбцов находятся в первом ряду Гугл таблицы").pack()
+		Label(self, text="- Пользователь должен быть авторизован на всех платформах в бразузере Google Chrome").pack()
 
 
-class Results_window(tk.Toplevel):
+class Results_window(Toplevel):
 	'''Shows result of ad parsing to the user'''
 
 	def __init__(self, ad_data, *args, **kwargs):
@@ -447,11 +447,11 @@ class Results_window(tk.Toplevel):
 				"Клики", "Охват", 
 				# "Просмотры"
 			]
-		tk.Label(
+		Label(
 			self, text="Данные, записанные в Google таблицу:"
 		).grid(row=0, column=0, columnspan=len(self.column_names))
 		for idx, name in enumerate(self.column_names):
-			tk.Label(
+			Label(
 				self, text=name, padx=2, pady=2
 			).grid(
 				row=1, column=idx+1, padx=2, pady=2, sticky='nsew'
@@ -470,22 +470,22 @@ class Results_window(tk.Toplevel):
 		for pf_name in ad_data:
 			if ad_data[pf_name]:
 				n = len(ad_data[pf_name])
-				tk.Label(
+				Label(
 					self, text=pf_name
 				).grid(row=row_count, column=0, rowspan=n)
 				for camp_id in ad_data[pf_name]:
-					tk.Label(self, text=camp_id).grid(row=row_count, column=1)
+					Label(self, text=camp_id).grid(row=row_count, column=1)
 					for indicator in ad_data[pf_name][camp_id]:
-						tk.Label(
+						Label(
 							self, text=ad_data[pf_name][camp_id][indicator]
 						).grid(row=row_count, column=col_n[indicator])
 					row_count += 1
 
-		self.ok_btn = tk.Button(self, text="OK", width=20, command=self.destroy)
+		self.ok_btn = Button(self, text="OK", width=20, command=self.destroy)
 		self.ok_btn.grid(row=row_count, column=0, columnspan=len(self.column_names), pady=2)
 
 
-class PlatformFrame(tk.Frame):
+class PlatformFrame(Frame):
 	'''Controls widgets relating to a particular Ad Platform'''
 
 	def __init__(self, *args, name, row, init_states=None, **kwargs):
@@ -500,13 +500,13 @@ class PlatformFrame(tk.Frame):
 		self.DEL_BTN_COL = 10
 
 		# Frame with Platform Name
-		self.name_frame = tk.Frame(self)
-		tk.Label(self.name_frame, text=self.name, 
+		self.name_frame = Frame(self)
+		Label(self.name_frame, text=self.name, 
 			padx=2, pady=2).pack(padx=2, pady=2, expand=True)
 		self.name_frame.grid(row=0, column=0, sticky='nsew', padx=2)
 
 		# Frame with Campaign Rows
-		self.rows_frame = tk.Frame(self)
+		self.rows_frame = Frame(self)
 		ColumnRow(self.rows_frame, self.has_client_id)
 
 		self.campaigns = OrderedDict()
@@ -515,7 +515,7 @@ class PlatformFrame(tk.Frame):
 			for i, init_state in enumerate(init_states):
 				self.campaigns[i+1] = Row(self.rows_frame, i+1, self.has_client_id, 
 											init_state=init_state)
-				tk.Button(
+				Button(
 					
 					self.rows_frame, 
 					text='Удалить', 
@@ -523,7 +523,7 @@ class PlatformFrame(tk.Frame):
 				
 				).grid(row=i+1, column=self.DEL_BTN_COL)
 
-		tk.Button(
+		Button(
 
 			self.rows_frame, 
 			text=f'Добавить кампанию {self.name}', 
@@ -554,7 +554,7 @@ class PlatformFrame(tk.Frame):
 		if rows-1 == last_key+1:
 			self.rows_frame.grid_slaves(row=last_key+1, column=0)[0].grid_forget()
 		self.campaigns[last_key+1] = Row(self.rows_frame, last_key+1, self.has_client_id)
-		tk.Button(
+		Button(
 					
 			self.rows_frame, 
 			text='Удалить', 
@@ -563,7 +563,7 @@ class PlatformFrame(tk.Frame):
 		).grid(row=last_key+1, column=self.DEL_BTN_COL)
 
 		if rows-1 == last_key+1:
-			tk.Button(
+			Button(
 
 				self.rows_frame, 
 				text=f'Добавить кампанию {self.name}', 
@@ -598,7 +598,7 @@ class PlatformFrame(tk.Frame):
 		}
 
 
-class Program(tk.Tk):
+class Program(Tk):
 	"""
 	Main GUI container
 	"""
@@ -610,9 +610,9 @@ class Program(tk.Tk):
 		self.title("Auto Basya")
 		self.configure(bg="grey")
 		self.columnconfigure((0,), weight=1)
-		self.main_menu = tk.Menu(self)
+		self.main_menu = Menu(self)
 		self.config(menu=self.main_menu)
-		self.options_menu = tk.Menu(self.main_menu, tearoff=0)
+		self.options_menu = Menu(self.main_menu, tearoff=0)
 		self.set_options_menu()
 
 		self.backend = Backend()
@@ -630,7 +630,7 @@ class Program(tk.Tk):
 			pf: row for row, pf in enumerate(self.pf_names)
 		}
 		self.vars = {
-			pf: tk.BooleanVar(value=(pf in self.input_data)) 
+			pf: BooleanVar(value=(pf in self.input_data)) 
 			for pf in self.pf_names
 		}
 		self.frames = {
@@ -642,7 +642,7 @@ class Program(tk.Tk):
 		self.welcome_lbl = None
 		if not self.input_data:
 			logger.info('Welcome Message')
-			self.welcome_lbl = tk.Label(
+			self.welcome_lbl = Label(
 				self,
 				text=u"Добро пожаловать в Авто Басю.\n\nПохоже, что это первый запуск программы (либо не было сохранено ни одной кампании).\n\nЧтобы приступить к работе, зайдите в\nНастройки > Платформы,\nчтобы выбрать платформы, с которыми предстоит работать, а также в\nНастройки > Google Таблица\nчтобы внести параметры Google таблицы, в которую предстоит экспортировать данные.", 
 				padx=10, pady=10
@@ -672,15 +672,15 @@ class Program(tk.Tk):
 		'''
 		logger.info("platforms window call")
 		
-		pf_window = tk.Toplevel(padx=10, pady=10)
+		pf_window = Toplevel(padx=10, pady=10)
 		pf_window.title("Платформы")
 		
 		# Subject to change to grid
-		tip = tk.Label(pf_window, 
+		tip = Label(pf_window, 
 			text="Отметьте галочкой платформы, \nиз которых требуется экспортировать данные"
 			).pack()
 
-		pf_checkboxes = tk.Frame(pf_window)
+		pf_checkboxes = Frame(pf_window)
 
 		MAX_ROWS = 8
 		i = 0
@@ -688,7 +688,7 @@ class Program(tk.Tk):
 			if i < self.pf_count:
 				for row in range(MAX_ROWS):
 					if i < self.pf_count:
-						tk.Checkbutton(
+						Checkbutton(
 							pf_checkboxes, 
 							text=self.pf_names[i],
 							variable=self.vars[self.pf_names[i]],
@@ -698,7 +698,7 @@ class Program(tk.Tk):
 
 		pf_checkboxes.pack(fill='both', expand=True)
 
-		platforms_ok_btn = tk.Button(
+		platforms_ok_btn = Button(
 			pf_window, 
 			text="OK", 
 			command=pf_window.destroy
@@ -754,10 +754,10 @@ class Program(tk.Tk):
 		Sets up footer of the GUI with two buttons
 		'''
 		
-		self.footer = tk.Frame(self)
-		save_start_btn = tk.Button(self.footer, text="Сохранить и Запустить",
+		self.footer = Frame(self)
+		save_start_btn = Button(self.footer, text="Сохранить и Запустить",
 			command=self.save_start_process_btn, padx=5)
-		save_btn = tk.Button(self.footer, text="Сохранить",
+		save_btn = Button(self.footer, text="Сохранить",
 			command=self.save_btn, padx=5)
 		save_btn.grid(row=0, column=1, sticky='E', padx=5, pady=10)
 		save_start_btn.grid(row=0, column=2, sticky='E', padx=5, pady=10)
@@ -779,7 +779,7 @@ class Program(tk.Tk):
 		self.set_progress_bar()
 		logger.info('Running main backend process')
 		logger.debug(f"Data given to backend: {self.input_data}")
-		self.gs_warning = tk.Label(self.footer, text="Не заданы настройки Google таблицы")
+		self.gs_warning = Label(self.footer, text="Не заданы настройки Google таблицы")
 		if self.backend.gs_setting_complete():
 			self.gs_warning.grid_forget()
 			self.backend.run(self.input_data)

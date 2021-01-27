@@ -1,24 +1,25 @@
-import browser_cookie3
 import pickle
-import pygsheets as ps
 import re
-import requests
-import time
 import yaml
+from browser_cookie3 import chrome
 from bs4 import BeautifulSoup
 from datetime import date
 from http.cookiejar import CookieJar
 from loguru import logger
 from os import path
+from pygsheets import authorize
+from requests import get, post
+from time import time
 
 
 class Backend:
 
 	def __init__(self):
 		self.path_to_config = path.join('..', 'config', 'backend_config.yml')
+		self.path_to_cookies_temp = path.join('..', 'config', 'cookies.pickle')
 		self.config = self.load_config()
 
-		self.gc = ps.authorize(client_secret=path.join('..', 'config', 'client_secret.json'))
+		self.gc = authorize(client_secret=path.join('..', 'config', 'client_secret.json'))
 
 		# We make sure in the GUI part that all necessary settings are made 
 		if 'GS' in self.config:
@@ -34,6 +35,7 @@ class Backend:
 			'Вконтакте': self.process_vk,
 			'Facebook': self.process_fb,
 			'MyTarget': self.process_mt
+
 		}
 		self.data_to_write = {}
 		# Separate dict for user report
@@ -41,14 +43,17 @@ class Backend:
 
 	def _get_cookies(self, ):
 		'''Returns user's browser cookies'''
+		
 		'''From file for testing'''
-		with open('cookies.pickle', 'rb') as f:
-			load_list_cookies = pickle.load(f)
-		cj = CookieJar()
-		for i in load_list_cookies:
-			cj.set_cookie(i)
-		'''From Chrome database'''
-		# cj = browser_cookie3.chrome()
+		if path.isfile(self.path_to_cookies_temp):
+			with open('..\\config\\cookies.pickle', 'rb') as f:
+				load_list_cookies = pickle.load(f)
+			cj = CookieJar()
+			for i in load_list_cookies:
+				cj.set_cookie(i)
+		else:
+			# From Chrome cookie database
+			cj = chrome()
 		return cj
 
 	def get_gs_config(self):
@@ -93,7 +98,7 @@ class Backend:
 		'''Downloads current official USD conversion rate from Russia's
 		Central Bank and returns a number with 4 floating points'''
 
-		cbr = requests.get('http://www.cbr.ru/scripts/XML_daily.asp')
+		cbr = get('http://www.cbr.ru/scripts/XML_daily.asp')
 		soup = BeautifulSoup(cbr.content, 'xml')
 		rate = float(soup.find('CharCode', text='USD').find_next_sibling('Value')\
 			.string.replace(',','.'))
@@ -138,10 +143,10 @@ class Backend:
 			}
 
 			try:
-				r = requests.get(url, params=request_data)
+				r = get(url, params=request_data)
 				logger.debug('GET WORKED')
 			except:
-				r = requests.post(url, data=request_data)
+				r = post(url, data=request_data)
 				logger.debug('POST WORKED')
 
 			json_response = r.json()
@@ -205,7 +210,7 @@ class Backend:
 		'''Gets FB access token and session_id'''
 
 		logger.info("Request for FB access token and session id")
-		r_auth = requests.get('https://business.facebook.com/adsmanager/\
+		r_auth = get('https://business.facebook.com/adsmanager/\
 			manage/campaigns', 
 			headers=self.config['Facebook']['authorize']['headers'], 
 			params=self.config['Facebook']['authorize']['params'], 
@@ -257,7 +262,7 @@ class Backend:
 
 			})
 
-			r = requests.get(f'https://graph.facebook.com/v7.0/'
+			r = get(f'https://graph.facebook.com/v7.0/'
 				f'act_{campaign["client_id"]}/am_tabular',
 				headers=self.config['Facebook']['get_campaign_data']['headers'],
 				params=self.config['Facebook']['get_campaign_data']['params'])
@@ -275,7 +280,7 @@ class Backend:
 						'_sessionID': session_id
 					})
 
-					r = requests.get(f'https://graph.facebook.com/v7.0/'
+					r = get(f'https://graph.facebook.com/v7.0/'
 						f'act_{campaign["client_id"]}/am_tabular',
 						headers=self.config['Facebook']['get_campaign_data']['headers'],
 						params=self.config['Facebook']['get_campaign_data']['params'])
@@ -352,7 +357,7 @@ class Backend:
 
 				self.config['MyTarget']['get_client_id']['params']['sudo'] = c['client_id']
 
-				r = requests.get(
+				r = get(
 					'https://target.my.com/dashboard', 
 					headers=self.config['MyTarget']['get_client_id']['headers'],
 					params=self.config['MyTarget']['get_client_id']['params'], 
@@ -398,10 +403,10 @@ class Backend:
 					'date_from': c['dates'][0].strftime("%d.%m.%Y"),
 					'date_to': c['dates'][1].strftime("%d.%m.%Y"),
 					'adv_user': client_internal_ids[c['client_id']],
-					'_': str(int(time.time() * 1000))
+					'_': str(int(time() * 1000))
 				}
 			)
-			r = requests.get(
+			r = get(
 				'https://target.my.com/api/v3/statistics/campaigns/day.json', 
 				headers=self.config['MyTarget']['get_ad_data']['headers'], 
 				params=self.config['MyTarget']['get_ad_data']['params'], 

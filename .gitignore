@@ -1,4 +1,4 @@
 *
 !*.py
 !.gitignore
-!Readme.md
+!*.md

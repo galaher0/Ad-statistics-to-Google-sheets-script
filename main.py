@@ -1,5 +1,4 @@
-from backend import Backend
-from gui import *
+from gui import Program
 
 if __name__ == '__main__':
 		
